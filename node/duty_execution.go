@@ -63,7 +63,7 @@ func (n *ssvNode) waitForSignatureCollection(
 				logger.Error("received invalid signature", zap.Error(err))
 				continue
 			}
-			logger.Info("collected valid signature", zap.Uint64("node_id", msg.Msg.SignerIds[0]))
+			logger.Info("collected valid signature", zap.Uint64("from_node_id", msg.Msg.SignerIds[0]))
 
 			lock.Lock()
 			signatures[msg.Msg.SignerIds[0]] = msg.Msg.Signature
