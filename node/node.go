@@ -19,7 +19,7 @@ import (
 
 // Options contains options to create the node
 type Options struct {
-	ValidatorStorage           collections.ValidatorStorage
+	ValidatorStorage           collections.IValidator
 	ETHNetwork                 core.Network
 	Network                    network.Network
 	Queue                      *msgqueue.MessageQueue
@@ -39,7 +39,7 @@ type Node interface {
 
 // ssvNode implements Node interface
 type ssvNode struct {
-	validatorStorage collections.ValidatorStorage
+	validatorStorage collections.IValidator
 	ethNetwork       core.Network
 	network          network.Network
 	queue            *msgqueue.MessageQueue

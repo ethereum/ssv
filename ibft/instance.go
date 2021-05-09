@@ -44,7 +44,6 @@ type Instance struct {
 	Params           *proto.InstanceParams
 	roundChangeTimer *time.Timer
 	Logger           *zap.Logger
-	msgLock          sync.Mutex
 
 	// messages
 	MsgQueue            *msgqueue.MessageQueue
@@ -54,12 +53,16 @@ type Instance struct {
 	ChangeRoundMessages msgcont.MessageContainer
 
 	// channels
-	changeRoundChan       chan bool
-	stageChangedChans     []chan proto.RoundState
-	stageChangedChansLock sync.Mutex
+	changeRoundChan   chan bool
+	stageChangedChans []chan proto.RoundState
 
 	// flags
 	stop bool
+
+	// locks
+	stageChangedChansLock sync.Mutex
+	stopLock              sync.Mutex
+	stageLock             sync.Mutex
 }
 
 // NewInstance is the constructor of Instance
@@ -84,7 +87,8 @@ func NewInstance(opts InstanceOptions) *Instance {
 		LeaderSelector: opts.LeaderSelector,
 		Params:         opts.Params,
 		Logger:         opts.Logger.With(zap.Uint64("node_id", opts.Me.IbftId), zap.Uint64("seq_num", opts.SeqNumber)),
-		msgLock:        sync.Mutex{},
+		stopLock:       sync.Mutex{},
+		stageLock:      sync.Mutex{},
 
 		MsgQueue:            opts.Queue,
 		PrePrepareMessages:  msgcontinmem.New(uint64(opts.Params.ThresholdSize())),
@@ -139,15 +143,21 @@ func (i *Instance) Start(inputValue []byte) {
 
 // Stop will trigger a stop for the entire instance
 func (i *Instance) Stop() {
+	i.stopLock.Lock()
+	defer i.stopLock.Unlock()
+
 	i.stop = true
 	i.stopRoundChangeTimer()
 	i.SetStage(proto.RoundState_Stopped)
 	i.Logger.Info("stopping iBFT instance...")
 }
 
-// Stage returns the instance message state
-func (i *Instance) Stage() proto.RoundState {
-	return i.State.Stage
+// IsStopped returns true if msg stopped, false if not
+func (i *Instance) IsStopped() bool {
+	i.stopLock.Lock()
+	defer i.stopLock.Unlock()
+
+	return i.stop
 }
 
 // BumpRound is used to set round in the instance's MsgQueue - the message broker
@@ -158,6 +168,9 @@ func (i *Instance) BumpRound(round uint64) {
 
 // SetStage set the State's round State and pushed the new State into the State channel
 func (i *Instance) SetStage(stage proto.RoundState) {
+	i.stageLock.Lock()
+	defer i.stageLock.Unlock()
+
 	i.State.Stage = stage
 
 	// Delete all queue messages when decided, we do not need them anymore.
@@ -174,6 +187,13 @@ func (i *Instance) SetStage(stage proto.RoundState) {
 		default:
 		}
 	}
+}
+
+// Stage returns the instance message state
+func (i *Instance) Stage() proto.RoundState {
+	i.stageLock.Lock()
+	defer i.stageLock.Unlock()
+	return i.State.Stage
 }
 
 // GetStageChan returns a RoundState channel added to the stateChangesChans array
@@ -198,7 +218,7 @@ func (i *Instance) StartEventLoop() {
 // Internal chan monitor if the instance reached decision or if a round change is required.
 func (i *Instance) StartMessagePipeline() {
 	for {
-		if i.stop {
+		if i.IsStopped() {
 			i.Logger.Info("stopping iBFT message pipeline...")
 			break
 		}
@@ -212,7 +232,7 @@ func (i *Instance) StartMessagePipeline() {
 		}
 
 		// In case instance was decided, exit message pipeline
-		if i.State.Stage == proto.RoundState_Decided {
+		if i.Stage() == proto.RoundState_Decided {
 			break
 		}
 	}

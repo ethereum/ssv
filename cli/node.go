@@ -162,6 +162,7 @@ var startNodeCmd = &cobra.Command{
 			Queue:            msgQ,
 			Consensus:        consensusType,
 			IBFT: ibft.New(
+				logger,
 				ibftStorage,
 				network,
 				msgQ,
@@ -180,7 +181,7 @@ var startNodeCmd = &cobra.Command{
 	},
 }
 
-func configureStorage(storagePath string, logger *zap.Logger, validatorPk *bls.PublicKey, shareKey *bls.SecretKey, nodeID uint64) (collections.ValidatorStorage, collections.IbftStorage) {
+func configureStorage(storagePath string, logger *zap.Logger, validatorPk *bls.PublicKey, shareKey *bls.SecretKey, nodeID uint64) (*collections.ValidatorStorage, *collections.IbftStorage) {
 	db, err := kv.New(storagePath, *logger)
 	if err != nil {
 		logger.Fatal("failed to create db!", zap.Error(err))
@@ -211,7 +212,7 @@ func configureStorage(storagePath string, logger *zap.Logger, validatorPk *bls.P
 		logger.Error("Failed to load validator share data from config", zap.Error(err))
 	}
 	ibftStorage := collections.NewIbft(db, logger, "attestation")
-	return validatorStorage, ibftStorage
+	return &validatorStorage, &ibftStorage
 }
 
 func _getBytesFromHex(str string) []byte {

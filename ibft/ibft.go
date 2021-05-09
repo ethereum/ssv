@@ -6,6 +6,7 @@ import (
 	"github.com/bloxapp/ssv/network/msgqueue"
 	"github.com/bloxapp/ssv/slotqueue"
 	"github.com/bloxapp/ssv/storage/collections"
+	"sync"
 
 	"go.uber.org/zap"
 
@@ -44,39 +45,31 @@ type IBFT interface {
 
 // ibftImpl implements IBFT interface
 type ibftImpl struct {
-	instances      []*Instance // key is the instance identifier
-	ibftStorage    collections.IbftStorage
-	network        network.Network
-	msgQueue       *msgqueue.MessageQueue
-	params         *proto.InstanceParams
-	leaderSelector leader.Selector
+	instances           []*Instance // key is the instance identifier
+	currentInstance     *Instance
+	currentInstanceLock sync.Locker
+	logger              *zap.Logger
+	storage             collections.Iibft
+	network             network.Network
+	msgQueue            *msgqueue.MessageQueue
+	params              *proto.InstanceParams
+	leaderSelector      leader.Selector
 }
 
 // New is the constructor of IBFT
-func New(storage collections.IbftStorage, network network.Network, queue *msgqueue.MessageQueue, params *proto.InstanceParams) IBFT {
+func New(logger *zap.Logger, storage collections.Iibft, network network.Network, queue *msgqueue.MessageQueue, params *proto.InstanceParams) IBFT {
 	ret := &ibftImpl{
-		ibftStorage:    storage,
-		instances:      make([]*Instance, 0),
-		network:        network,
-		msgQueue:       queue,
-		params:         params,
-		leaderSelector: &leader.Deterministic{},
+		storage:             storage,
+		instances:           make([]*Instance, 0),
+		currentInstanceLock: &sync.Mutex{},
+		logger:              logger,
+		network:             network,
+		msgQueue:            queue,
+		params:              params,
+		leaderSelector:      &leader.Deterministic{},
 	}
 	ret.listenToNetworkMessages()
 	return ret
-}
-
-func (i *ibftImpl) listenToNetworkMessages() {
-	msgChan := i.network.ReceivedMsgChan()
-	go func() {
-		for msg := range msgChan {
-			i.msgQueue.AddMessage(&network.Message{
-				Lambda:        msg.Message.Lambda,
-				SignedMessage: msg,
-				Type:          network.NetworkMsg_IBFTType,
-			})
-		}
-	}()
 }
 
 func (i *ibftImpl) StartInstance(opts StartOptions) (bool, int, []byte) {
@@ -104,7 +97,7 @@ func (i *ibftImpl) StartInstance(opts StartOptions) (bool, int, []byte) {
 		switch stage := <-stageChan; stage {
 		// TODO - complete values
 		case proto.RoundState_Prepare:
-			if err := i.ibftStorage.SaveCurrentInstance(newInstance.State); err != nil {
+			if err := i.storage.SaveCurrentInstance(newInstance.State); err != nil {
 				newInstance.Logger.Error("could not save prepare msg to storage", zap.Error(err))
 				return false, 0, nil
 			}
@@ -114,7 +107,7 @@ func (i *ibftImpl) StartInstance(opts StartOptions) (bool, int, []byte) {
 				newInstance.Logger.Error("could not get aggregated commit msg and save to storage", zap.Error(err))
 				return false, 0, nil
 			}
-			if err := i.ibftStorage.SaveDecided(agg); err != nil {
+			if err := i.storage.SaveDecided(agg); err != nil {
 				newInstance.Logger.Error("could not save aggregated commit msg to storage", zap.Error(err))
 				return false, 0, nil
 			}
