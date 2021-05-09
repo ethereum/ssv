@@ -1,7 +1,6 @@
 package ibft
 
 import (
-	"bytes"
 	"github.com/bloxapp/ssv/ibft/proto"
 	"github.com/bloxapp/ssv/ibft/sync"
 	"github.com/bloxapp/ssv/network"
@@ -19,10 +18,9 @@ by calling Decide(λi,− , Qcommit) do
 	send Qcommit to process pj
 */
 func (i *ibftImpl) ProcessDecidedMessage(msg *proto.SignedMessage) {
-	i.currentInstanceLock.Lock()
-	defer i.currentInstanceLock.Unlock()
-
 	// TODO - validate msg
+
+	i.logger.Info("received highest decided", zap.Uint64("seq number", msg.Message.SeqNumber), zap.Uint64s("node ids", msg.SignerIds))
 
 	// if we already have this in storage, pass
 	found, err := i.storage.GetDecided(msg.Message.ValidatorPk, msg.Message.SeqNumber)
@@ -36,15 +34,27 @@ func (i *ibftImpl) ProcessDecidedMessage(msg *proto.SignedMessage) {
 
 	// If received decided for current instance, let that instance play out.
 	// otherwise sync
-	// TODO - should we act upon this decided msg and not let it play out?
-	if i.currentInstance == nil || !bytes.Equal(i.currentInstance.State.Lambda, msg.Message.Lambda) {
+	if i.currentInstance != nil || i.currentInstance.State.SeqNumber < msg.Message.SeqNumber {
 		// stop current instance
 		i.currentInstance.Stop()
 
 		// sync
 		s := sync.NewHistorySync(i.network)
 		go s.Start()
+	} else {
+		// if no current instance and highest decided is lower than msg seq number, sync
+		highest, err := i.storage.GetHighestDecidedInstance(msg.Message.ValidatorPk)
+		if err != nil {
+			i.logger.Error("could not get highest decided instance from storage", zap.Error(err))
+			return
+		}
+		if highest.Message.SeqNumber < msg.Message.SeqNumber {
+			// sync
+			s := sync.NewHistorySync(i.network)
+			go s.Start()
+		}
 	}
+
 }
 
 func (i *ibftImpl) ProcessSyncMessage(msg *network.SyncChanObj) {

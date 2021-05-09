@@ -31,5 +31,5 @@ func (n *p2pNetwork) ReceivedDecidedChan() <-chan *proto.SignedMessage {
 	n.listeners = append(n.listeners, ls)
 	n.listenersLock.Unlock()
 
-	return ls.sigCh
+	return ls.decidedCh
 }
