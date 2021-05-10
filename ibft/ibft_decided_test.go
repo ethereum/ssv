@@ -10,11 +10,6 @@ type testStorage struct {
 	highestDecided *proto.SignedMessage
 }
 
-// newTestStorage test
-func newTestStorage(highestDecided *proto.SignedMessage) *testStorage {
-	return &testStorage{highestDecided: highestDecided}
-}
-
 // SaveCurrentInstance implementation
 func (s *testStorage) SaveCurrentInstance(_ *proto.State) error {
 	return nil
