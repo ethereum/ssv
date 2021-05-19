@@ -114,9 +114,13 @@ func (msg *SignedMessage) Aggregate(other *SignedMessage) error {
 		return errors.New("can't aggregate different messages")
 	}
 
-	err = verifyUniqueSigners(msg.SignerIds)
-	if err != nil {
-		return err
+	// verify not already aggregated
+	for _, id := range msg.SignerIds {
+		for _, otherID := range other.SignerIds {
+			if id == otherID {
+				return errors.New("can't aggregate messages with similar signers")
+			}
+		}
 	}
 
 	// aggregate

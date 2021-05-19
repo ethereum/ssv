@@ -64,7 +64,7 @@ func TestSignedMessage_AggregateSig(t *testing.T) {
 		require.True(t, res)
 	})
 
-	t.Run("double aggregate", func(t *testing.T) {
+	t.Run("duplicate aggregate", func(t *testing.T) {
 		require.EqualError(t, a.Aggregate(b), "can't aggregate messages with similar signers")
 	})
 
@@ -157,6 +157,41 @@ func TestSignedMessage_VerifyAggregatedSig(t *testing.T) {
 				require.EqualError(t, err, test.expectedError)
 			}
 
+		})
+	}
+}
+
+func TestVerifyUniqueSigners(t *testing.T) {
+	tests := []struct{
+		name string
+		signerIds []uint64
+		err string
+	}{
+		{
+			"valid list of signers",
+			[]uint64{1, 2, 3},
+			"",
+		},
+		{
+			"duplicated signers",
+			[]uint64{1, 2, 2},
+			"signers are not unique",
+		},
+		{
+			"no signers",
+			[]uint64{},
+			"",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := verifyUniqueSigners(test.signerIds)
+			if len(test.err) > 0 {
+				require.EqualError(t, err, test.err)
+			} else {
+				require.NoError(t, err)
+			}
 		})
 	}
 }
