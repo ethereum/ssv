@@ -84,7 +84,7 @@ func TestValidateChangeRound(t *testing.T) {
 				Type:   proto.RoundState_ChangeRound,
 				Round:  1,
 				Lambda: []byte("Lambda"),
-				Value:  changeRoundDataToBytes(&proto.ChangeRoundData{
+				Value: changeRoundDataToBytes(&proto.ChangeRoundData{
 					JustificationMsg: &proto.Message{
 						Type: proto.RoundState_PrePrepare,
 					},
@@ -99,9 +99,9 @@ func TestValidateChangeRound(t *testing.T) {
 				Type:   proto.RoundState_ChangeRound,
 				Round:  1,
 				Lambda: []byte("Lambda"),
-				Value:  changeRoundDataToBytes(&proto.ChangeRoundData{
+				Value: changeRoundDataToBytes(&proto.ChangeRoundData{
 					JustificationMsg: &proto.Message{
-						Type: proto.RoundState_Prepare,
+						Type:  proto.RoundState_Prepare,
 						Round: 1,
 					},
 					PreparedRound: 0,
@@ -116,10 +116,10 @@ func TestValidateChangeRound(t *testing.T) {
 				Type:   proto.RoundState_ChangeRound,
 				Round:  3,
 				Lambda: []byte("Lambda"),
-				Value:  changeRoundDataToBytes(&proto.ChangeRoundData{
+				Value: changeRoundDataToBytes(&proto.ChangeRoundData{
 					JustificationMsg: &proto.Message{
-						Type: proto.RoundState_Prepare,
-						Round: 2,
+						Type:   proto.RoundState_Prepare,
+						Round:  2,
 						Lambda: []byte("xxx"),
 					},
 					PreparedRound: 2,
@@ -134,12 +134,12 @@ func TestValidateChangeRound(t *testing.T) {
 				Type:   proto.RoundState_ChangeRound,
 				Round:  3,
 				Lambda: []byte("Lambda"),
-				Value:  changeRoundDataToBytes(&proto.ChangeRoundData{
+				Value: changeRoundDataToBytes(&proto.ChangeRoundData{
 					JustificationMsg: &proto.Message{
-						Type: proto.RoundState_Prepare,
-						Round: 2,
+						Type:   proto.RoundState_Prepare,
+						Round:  2,
 						Lambda: []byte("Lambda"),
-						Value: []byte("xxx"),
+						Value:  []byte("xxx"),
 					},
 					PreparedRound: 2,
 					PreparedValue: []byte("value"),
@@ -153,16 +153,16 @@ func TestValidateChangeRound(t *testing.T) {
 				Type:   proto.RoundState_ChangeRound,
 				Round:  3,
 				Lambda: []byte("Lambda"),
-				Value:  changeRoundDataToBytes(&proto.ChangeRoundData{
+				Value: changeRoundDataToBytes(&proto.ChangeRoundData{
 					JustificationMsg: &proto.Message{
-						Type: proto.RoundState_Prepare,
-						Round: 2,
+						Type:   proto.RoundState_Prepare,
+						Round:  2,
 						Lambda: []byte("Lambda"),
-						Value: []byte("value"),
+						Value:  []byte("value"),
 					},
 					PreparedRound: 2,
 					PreparedValue: []byte("value"),
-					SignerIds: []uint64{1, 2},
+					SignerIds:     []uint64{1, 2},
 				}),
 			}),
 		},
@@ -173,16 +173,16 @@ func TestValidateChangeRound(t *testing.T) {
 				Type:   proto.RoundState_ChangeRound,
 				Round:  3,
 				Lambda: []byte("Lambda"),
-				Value:  changeRoundDataToBytes(&proto.ChangeRoundData{
+				Value: changeRoundDataToBytes(&proto.ChangeRoundData{
 					JustificationMsg: &proto.Message{
-						Type: proto.RoundState_Prepare,
-						Round: 2,
+						Type:   proto.RoundState_Prepare,
+						Round:  2,
 						Lambda: []byte("Lambda"),
-						Value: []byte("value"),
+						Value:  []byte("value"),
 					},
 					PreparedRound: 2,
 					PreparedValue: []byte("value"),
-					SignerIds: []uint64{1, 2, 2},
+					SignerIds:     []uint64{1, 2, 2},
 				}),
 			}),
 		},

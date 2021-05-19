@@ -162,10 +162,10 @@ func TestSignedMessage_VerifyAggregatedSig(t *testing.T) {
 }
 
 func TestVerifyUniqueSigners(t *testing.T) {
-	tests := []struct{
-		name string
+	tests := []struct {
+		name      string
 		signerIds []uint64
-		err string
+		err       string
 	}{
 		{
 			"valid list of signers",
