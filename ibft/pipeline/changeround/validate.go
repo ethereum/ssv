@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/bloxapp/ssv/ibft/pipeline"
 	"github.com/bloxapp/ssv/ibft/proto"
@@ -52,17 +53,16 @@ func (p *validate) Run(signedMessage *proto.SignedMessage) error {
 		return errors.New("change round justification does not constitute a quorum")
 	}
 
-	// validate justification sig signature
-	// TODO - validate signed ids are unique
+	// validate justification signature
 	pks, err := p.params.PubKeysByID(data.SignerIds)
 	if err != nil {
-		return err
+		return fmt.Errorf("change round could not get pubkey: %w", err)
 	}
-
 	aggregated := pks.Aggregate()
 	res, err := data.VerifySig(aggregated)
 	if err != nil {
-		return err
+		return fmt.Errorf("change round could not verify signature: %w", err)
+
 	}
 	if !res {
 		return errors.New("change round justification signature doesn't verify")

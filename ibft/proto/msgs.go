@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
 	"github.com/herumi/bls-eth-go-binary/bls"
 )
 
@@ -64,13 +63,9 @@ func (msg *SignedMessage) VerifyAggregatedSig(pks []*bls.PublicKey) (bool, error
 	}
 
 	// signer uniqueness
-	uniqueMap := make(map[uint64]bool)
-	for _, signer := range msg.SignerIds {
-		if _, found := uniqueMap[signer]; !found {
-			uniqueMap[signer] = true
-		} else {
-			return false, errors.New("signers are not unique")
-		}
+	err := verifyUniqueSigners(msg.SignerIds)
+	if err != nil {
+		return false, err
 	}
 
 	root, err := msg.Message.SigningRoot()
@@ -119,13 +114,9 @@ func (msg *SignedMessage) Aggregate(other *SignedMessage) error {
 		return errors.New("can't aggregate different messages")
 	}
 
-	// verify not already aggregated
-	for _, id := range msg.SignerIds {
-		for _, otherID := range other.SignerIds {
-			if id == otherID {
-				return errors.New("can't aggregate messages with similar signers")
-			}
-		}
+	err = verifyUniqueSigners(msg.SignerIds)
+	if err != nil {
+		return err
 	}
 
 	// aggregate
@@ -159,6 +150,10 @@ func (msg *SignedMessage) DeepCopy() (*SignedMessage, error) {
 
 // VerifySig returns true if the justification signed msg verifies against the public key, false otherwise
 func (d *ChangeRoundData) VerifySig(pk bls.PublicKey) (bool, error) {
+	err := verifyUniqueSigners(d.SignerIds)
+	if err != nil {
+		return false, err
+	}
 	root, err := d.JustificationMsg.SigningRoot()
 	if err != nil {
 		return false, err
@@ -170,4 +165,16 @@ func (d *ChangeRoundData) VerifySig(pk bls.PublicKey) (bool, error) {
 	}
 
 	return sig.VerifyByte(&pk, root), nil
+}
+
+func verifyUniqueSigners(singerIds []uint64) error {
+	unique := map[uint64]bool{}
+	for _, signer := range singerIds {
+		if _, found := unique[signer]; !found {
+			unique[signer] = true
+		} else {
+			return errors.New("signers are not unique")
+		}
+	}
+	return nil
 }
