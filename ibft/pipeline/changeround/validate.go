@@ -3,8 +3,7 @@ package changeround
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"fmt"
+	"github.com/pkg/errors"
 
 	"github.com/bloxapp/ssv/ibft/pipeline"
 	"github.com/bloxapp/ssv/ibft/proto"
@@ -56,12 +55,12 @@ func (p *validate) Run(signedMessage *proto.SignedMessage) error {
 	// validate justification signature
 	pks, err := p.params.PubKeysByID(data.SignerIds)
 	if err != nil {
-		return fmt.Errorf("change round could not get pubkey: %w", err)
+		return errors.Wrap(err, "change round could not get pubkey")
 	}
 	aggregated := pks.Aggregate()
 	res, err := data.VerifySig(aggregated)
 	if err != nil {
-		return fmt.Errorf("change round could not verify signature: %w", err)
+		return errors.Wrap(err, "change round could not verify signature")
 
 	}
 	if !res {
