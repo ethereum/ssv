@@ -10,11 +10,10 @@ import (
 func TestSignedMessage_DeepCopy(t *testing.T) {
 	toCopy := &SignedMessage{
 		Message: &Message{
-			Type:           RoundState_Prepare,
-			Round:          1,
-			Lambda:         []byte("lambda"),
-			PreviousLambda: []byte("prev lambda"),
-			Value:          []byte("value"),
+			Type:   RoundState_Prepare,
+			Round:  1,
+			Lambda: []byte("lambda"),
+			Value:  []byte("value"),
 		},
 		Signature: []byte{1, 2, 3, 4},
 		SignerIds: []uint64{2},
@@ -38,19 +37,17 @@ func TestSignedMessage_AggregateSig(t *testing.T) {
 	secretKeys, _ := generateNodes(4)
 
 	a, _ := signMsg(0, secretKeys[0], &Message{
-		Type:           RoundState_Prepare,
-		Round:          1,
-		Lambda:         []byte("lambda"),
-		PreviousLambda: []byte("prev lambda"),
-		Value:          []byte("value"),
+		Type:   RoundState_Prepare,
+		Round:  1,
+		Lambda: []byte("lambda"),
+		Value:  []byte("value"),
 	})
 
 	b, _ := signMsg(1, secretKeys[1], &Message{
-		Type:           RoundState_Prepare,
-		Round:          1,
-		Lambda:         []byte("lambda"),
-		PreviousLambda: []byte("prev lambda"),
-		Value:          []byte("value"),
+		Type:   RoundState_Prepare,
+		Round:  1,
+		Lambda: []byte("lambda"),
+		Value:  []byte("value"),
 	})
 
 	// simple aggregate
@@ -73,7 +70,6 @@ func TestSignedMessage_AggregateSig(t *testing.T) {
 			Type:           RoundState_Prepare,
 			Round:          1,
 			Lambda:         []byte("wrong lambda"),
-			PreviousLambda: []byte("prev lambda"),
 			Value:          []byte("value"),
 		})
 		require.EqualError(t, a.Aggregate(c), "can't aggregate different messages")
@@ -95,11 +91,10 @@ func TestSignedMessage_VerifyAggregatedSig(t *testing.T) {
 		{
 			"simple single sig",
 			&Message{
-				Type:           RoundState_Prepare,
-				Round:          1,
-				Lambda:         []byte("lambda"),
-				PreviousLambda: []byte("prev lambda"),
-				Value:          []byte("value"),
+				Type:   RoundState_Prepare,
+				Round:  1,
+				Lambda: []byte("lambda"),
+				Value:  []byte("value"),
 			},
 			[]uint64{1},
 			"",
@@ -107,11 +102,10 @@ func TestSignedMessage_VerifyAggregatedSig(t *testing.T) {
 		{
 			"valid aggregated sig",
 			&Message{
-				Type:           RoundState_Prepare,
-				Round:          1,
-				Lambda:         []byte("lambda"),
-				PreviousLambda: []byte("prev lambda"),
-				Value:          []byte("value"),
+				Type:   RoundState_Prepare,
+				Round:  1,
+				Lambda: []byte("lambda"),
+				Value:  []byte("value"),
 			},
 			[]uint64{1, 2, 3},
 			"",
@@ -119,11 +113,10 @@ func TestSignedMessage_VerifyAggregatedSig(t *testing.T) {
 		{
 			"invalid aggregated sig, non unique signers",
 			&Message{
-				Type:           RoundState_Prepare,
-				Round:          1,
-				Lambda:         []byte("lambda"),
-				PreviousLambda: []byte("prev lambda"),
-				Value:          []byte("value"),
+				Type:   RoundState_Prepare,
+				Round:  1,
+				Lambda: []byte("lambda"),
+				Value:  []byte("value"),
 			},
 			[]uint64{1, 1, 3},
 			"signers are not unique",
