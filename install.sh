@@ -1,10 +1,10 @@
-# install docker
+  
+# install dependencies
 sudo apt-get -y update
 sudo apt-get -y install \
     apt-transport-https \
     ca-certificates \
     curl \
-    yq \
     gnupg \
     lsb-release
 
@@ -17,3 +17,8 @@ echo \
 sudo apt-get -y update
 sudo apt-get -y install docker-ce docker-ce-cli containerd.io
 
+# install more dependencies
+sudo apt-get -y update && \
+  DEBIAN_FRONTEND=noninteractive sudo apt-get install -yq --no-install-recommends \
+  bash make curl git zip unzip wget g++ python gcc-aarch64-linux-gnu \
+  && rm -rf /var/lib/apt/lists/*
