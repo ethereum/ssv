@@ -78,7 +78,7 @@ For a 4 node SSV network, 4 .env.node.<1/2/3/4> files need to be created.
 ### Research (Deprecated)
 - Secret Shared Validators on Eth2
     - [Litepaper](https://medium.com/coinmonks/eth2-secret-shared-validators-85824df8cbc0)
-- iBTF
+- iBFT
     - [Paper](https://arxiv.org/pdf/2002.03613.pdf)
     - [EIP650](https://github.com/ethereum/EIPs/issues/650)
     - [Liveness issues](https://github.com/ConsenSys/quorum/issues/305) - should have been addressed in the paper
