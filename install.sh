@@ -15,9 +15,12 @@ echo \
 sudo apt-get -y update
 sudo apt-get -y install docker-ce docker-ce-cli containerd.io
 
+
 # install more dependencies
 sudo apt-get -y update && \
-  DEBIAN_FRONTEND=noninteractive sudo apt-get install -yq --no-install-recommends \
-  bash curl \
+  apt-get install --no-install-recommends bash curl wget \
   && rm -rf /var/lib/apt/lists/*
 
+# manually installing yq
+sudo wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/3.3.0/yq_linux_amd64
+sudo chmod +x /usr/local/bin/yq
