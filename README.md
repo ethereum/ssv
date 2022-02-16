@@ -1,5 +1,14 @@
-[<img src="./internals/img/bloxstaking_header_image.png" >](https://www.bloxstaking.com/)
+# Migration notice
 
+The repository has migrated to https://github.com/bloxapp/ssv
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
 <br>
 <br>
 
